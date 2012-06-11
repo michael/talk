@@ -1,0 +1,50 @@
+<html>
+<head>
+  <script src="http://underscorejs.org/underscore.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script src="https://raw.github.com/michael/dance/gh-pages/dance.js"></script>
+  <script src="/talk.js"></script>
+
+  <script>
+
+    var talk = new Talk.Client("ws://localhost:3100/");
+
+
+    talk.ready(function() {
+      console.log('rrrrrready');
+      // Create chatroom
+    });
+
+    talk.on('message', function(message) {
+      $('#messages').append($('<div>'+message.message+'</div>'));
+    });
+
+    $(function() {
+      $('#send_message').submit(function(e) {
+
+        var message = {
+          "channel": "room-1",
+          "message": $('#message').val(),
+          "command": "message-sent"
+        };
+
+        talk.send(message, null, function() {
+          console.log('message confirmed');
+        });
+
+        return false;
+      });
+    });
+  </script>
+</head>
+<body>
+  <form id="send_message">
+    <input type="" id="message"/>
+    <input type="submit" value="Send"/>
+  </form>
+
+  <div id="messages">
+
+  </div>
+</body>
+</html>
