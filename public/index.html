@@ -6,13 +6,24 @@
   <script src="/talk.js"></script>
 
   <script>
-
     var talk = new Talk.Client("ws://localhost:3100/");
 
+    var operations = {
+      "document:create": {
+        "command": "document:create",
+        "name": "project-1",
+        "user": "michael",
+        "rev": 4,
+        "attributes": {
+          "title": "A new title"
+        }
+      }
+    };
 
     talk.ready(function() {
       console.log('rrrrrready');
-      // Create chatroom
+      // Create document
+      talk.send(operations["document:create"]);
     });
 
     talk.on('message', function(message) {
@@ -23,9 +34,9 @@
       $('#send_message').submit(function(e) {
 
         var message = {
-          "channel": "room-1",
-          "message": $('#message').val(),
-          "command": "message-sent"
+          "command": "node:insert",
+          "type": "/type/task",
+          "message": $('#message').val()
         };
 
         talk.send(message, null, function() {

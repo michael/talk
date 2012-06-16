@@ -1,7 +1,7 @@
 var express = require('express');
 var app     = express.createServer();
 var fs      = require('fs');
-// var agent   = new (require('./agent.js'))(app);
+var _       = require('underscore');
 
 // Load config defaults from JSON file.
 // Environment variables override defaults.
@@ -10,16 +10,12 @@ function loadConfig() {
   for (var i in config) {
     config[i] = process.env[i.toUpperCase()] || config[i];
   }
-
   console.log('Configuration');
   console.log(config);
   return config;
 }
 
 var config = loadConfig();
-var WebSocketServer = require('ws').Server,
-    wss = new WebSocketServer({ port: config.server_port });
-
 
 // Web Server
 // =============
@@ -31,48 +27,109 @@ app.listen(3000);
 
 console.log('Websocket Server started @ '+ config.server_port);
 
-
 // Websocket Server
 // =============
 
-// var talk = new Talk.Server();
+var TalkServer = function(port) {
+  this.numClients = 0;
+  this.clients = {};
+  this.handlers = {};
 
-// State
-var state = {};
+  var WebSocketServer = require('ws').Server;
 
-// Router
+  this.wss = new WebSocketServer({ port: config.server_port });
+  this.bindHandlers();
+};
 
-var route = function(message, ws) {
-  // which clients should get it
-  // Depending on the state of ws (maybe it has)
-  console.log(message);
-  return wss.clients;
-}
+_.extend(TalkServer.prototype, {
+  bindHandlers: function() {
+    var that = this;
 
-var clients = {};
-var numClients = 0;
+    this.wss.on('connection', function(ws) {
 
+      that.openSession(ws);
 
-wss.on('connection', function(ws) {
+      // Delegate
+      ws.on('close',   function() { that.closeSession() });
+      ws.on('message', function(message) {
+        // console.log('messave received', message);
+        that.handleMessage(ws, message);
+      });
+    });
+  },
 
-  // Register client
-  ws.id = numClients += 1;
-  clients[ws.id] = ws;
+  // Register client on connect
+  openSession: function(ws) {
+    ws.id = this.numClients += 1;
+    this.clients[ws.id] = ws;
+  },
 
-  // console.log(wss.clients);
-  ws.on('message', function(message) {
+  // Register client on connect
+  closeSession: function(ws) {
+    delete this.clients[ws.id];
+  },
+
+  // Register message handler
+  handleMessage: function(ws, message, fn) {
     console.log('received: %s', message);
 
     var message = JSON.parse(message);
+
     // Broadcast
-    var clients = route(message, ws);
+
+    // Find handler
+    var handler = this.handlers[message.command];
+
+    console.log(message.command);
+
+    if (handler) handler.call(this, ws, message);
+    // var clients = route(message, ws);
     
-    clients.forEach(function(client) {
-      client.send(JSON.stringify(message));
-    });
+    // clients.forEach(function(client) {
+    //   client.send(JSON.stringify(message));
+    // });
+  },
+
+  // Register handler for paricular operation
+  handle: function(op, fn) {
+    this.handlers[op] = fn;
+    console.log('handling ... ', op);
+  }
+});
+
+var talk = new TalkServer(3100);
+
+// Open documents
+var documents = {};
+
+function joinDocument(socket, document) {
+  console.log('joining document');
+}
+
+talk.handle('document:create', function(socket, message, cb) {
+  console.log('handler.. doc:create called', message.name);
+  joinDocument(socket, message.name);
+
+  // Client response
+  if (cb) cb(null, {"status": "ok"});
+});
+
+talk.handle('document:open', function(socket, message, cb) {
+  
+});
+
+talk.handle('document:open', function(socket, message, cb) {
+  
+});
+
+talk.handle('node:insert', function(socket, message, cb) {
+  console.log('inserting a node');
+
+  // TODO: broadcast to all concerned clients
+  this.wss.clients.forEach(function(client) {
+    client.send(JSON.stringify(message));
   });
 
-  ws.on('close', function() {
-    delete clients[ws.id];
-  });
+  // Client response
+  if (cb) cb(null, {"status": "ok"});
 });
