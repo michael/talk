@@ -28,6 +28,24 @@ What's the point of Talk.js
 * No longer worry about headers, POST vs. GET just send and receive data (as JSON)
 * A replacement for HTTP client/server communication. Send JSON, receive JSON. That's it.
 
+## Persons talk in messages, computers should too
+
+The concept of a message is an important one. Communication over HTTP is a bit awkward. Which headers to send, which content type to specify, streaming? Oh my!
+
+At the end of the day you just want to exchange data. 
+
+A talk message consists of:
+
+- `sender`
+- `recipient`
+- `command` telling the other party what you want. The command is used for routing within the recipient
+- all other properties can be used to structure the actual message you want to send
+
+
+Sometimes you want to receive a response. Wait for it.
+
+
+
 ## State
 
 Depending on what a client has done so far, the server needs to keep a state object for each client, as well as a global state
