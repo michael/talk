@@ -1,91 +1,33 @@
-# Talk
+# Substance Talk
 
-Before we get into detail. Let's recap what Websocket can do for us.
+Substance Talk is a protocol for exchanging data between multiple parties using the network. A party can be a web-browser, a web-server or any network program that can handle the talk protocol. The communication is done by messages (expressed as JSON) and works in both directions. You can use any technology to implement a program that participates in a Substance talk.
 
-* Stateful connections
-* Exchanging Messages in both directions
-
-This sounds wonderful, but what does it mean for application development? Websockets are a low level interface for exchanging data. It's still a young technology, waiting to be adopted on a broader scale. Lot's of tools exist for building HTTP Servers (Express.js) and Clients (jQuery et.al) but for realtime apps you are more or less on your own. For good reason, since realtime applications are hard to design generically, and require the most possible flexibilty for data exchange to deal with edge cases and for keeping the message size small.
+The idea is simple: Users should no longer worry about the implementation details of networking (such as HTTP headers etc.). People talk in messages and computers should too. Substance Talk is intended to be used with stateful connections, made possible by TCP sockets or websockets. It's a good choice for designing realtime applications and distributed systems. 
 
 
-What's challening:
+## Talk Messages
+
+A message consists of three properties at least:
+
+- `to` - Unique identifier of the recipient (optional)
+- `command` telling the other party what you want. The command is used for routing within the recipient
+
+
+All other properties can be used to add arbitrary data to your message.
+
 
 ## Maintaining State
-Maintaining state has always been one of the most challening things in computer science. So if you're going to use Websockets you should be aware that you need to spend some time with modelling your state data. Let me say this is crucial if you want do design a reliable system.
+
+Maintaining state has always been one of the most challening things in computer science. So if you're going to use Websockets you should be aware that you need to spend some time with modelling your state data. Let me say this is crucial if you want do design a reliable system. No framework will do that job for you.
+
+# Usage
+
+The Talk protocol is used by Substance to synchronize multiple clients that are editing a document in realtime. 
+
+In our case each document:create or document:open command modifies the state of a client. In other words the client gets assigned a document, and once that is done messages are exchanged between all clients that also have that document open.
 
 
-Examples:
-
-Chat with multiple channels:
-
-The server needs to keep track about who is active in which channel
-
-
-What's the point of Talk.js
-
-* A JSON-based protocol for exchanging messages.
-* Talking data.
-* No longer worry about headers, POST vs. GET just send and receive data (as JSON)
-* A replacement for HTTP client/server communication. Send JSON, receive JSON. That's it.
-
-## Persons talk in messages, computers should too
-
-The concept of a message is an important one. Communication over HTTP is a bit awkward. Which headers to send, which content type to specify, streaming? Oh my!
-
-At the end of the day you just want to exchange data. 
-
-A talk message consists of:
-
-- `sender`
-- `recipient`
-- `command` telling the other party what you want. The command is used for routing within the recipient
-- all other properties can be used to structure the actual message you want to send
-
-
-Sometimes you want to receive a response. Wait for it.
-
-
-
-## State
-
-Depending on what a client has done so far, the server needs to keep a state object for each client, as well as a global state
-
-## Routing
-
-In our case each document:create or document:open command modifies the state of a client. In other words the client gets assigned a document, and one that is done. Messages are exchanged between all clients that also have that document open. However, the client doesn't know anything about that. he just sends and receives messages, based on how your application-specific protocol looks like.
-
-
-Forget everything about URLS's and headers, now you have stateful connections to your server. However building a stateful application is not super easy but doable. So instead of providing you a full fledged framework, we are just defining a generic JSON exchange protocol as well as some hook-in points you can use to build your application. All you need to know is there's messages (expressed as JSON) that are sent back and forth.
-
-## REST
-
-GET /documents/4
-
-## Talk
-
-{
-  route: "document/get",
-  id: "document-id"
-}
-
-## REST
-
-POST /documents/4
-
-## Talk
-
-```
-{
-  command: "document:update",
-  id: "document-id",
-  data: {
-    ...
-  }
-}
-```
-
-
-# Communication by example
+## Example communication
 
 
 Client1 -> Server: Create an empty document
@@ -97,11 +39,12 @@ Client1 -> Server: Create an empty document
 }
 ```
 
-Server -> Client1: Done. You
+Server -> Client1: Done. With success.
 
 ```js
 {
-  status: "success"
+  status: "success",
+  session-id: 87123
 }
 ```
 
