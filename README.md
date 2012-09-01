@@ -44,13 +44,15 @@ Say hello to the server. The first parameter is always the method, determining w
 talk.send(["hello", "I'm Tim"]);
 ```
 
-Let's have our server doing some work for us by calculating the sum of some numbers.
+Let's have our server doing some work for us by calculating the sum of some numbers. 
 
 ```js
 talk.send(["add", [1, 5, 7]], function(err, sum) {
   console.log('And the result is: '+ sum);
 });
 ```
+
+Note, `Talk.send` takes an optional callback parameter that is executed once the response arrives from the server. This is a crucial functionality you might need in almost any application but plain websockets don't give you that.
 
 ## Maintaining State
 
