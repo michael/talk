@@ -4,6 +4,20 @@ Substance Talk is a protocol for exchanging data between multiple parties using 
 
 The idea is simple: Users should no longer worry about the implementation details of networking (such as HTTP headers etc.). People talk in messages and computers should too. Substance Talk is intended to be used with stateful connections, made possible by TCP sockets or websockets. It's being designed for realtime applications and distributed systems and kept as minimal as possible. Messages need to be specified in JSON notation.
 
+## Install
+
+For Node:
+
+```
+npm install talk
+```
+
+For the browser:
+
+```html
+<script language="javascript" src="talk.js"/>
+```
+
 ## Usage
 
 
